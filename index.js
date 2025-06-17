@@ -19,12 +19,12 @@ app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());
 
 const corsOptions = {
-    origin:'https://jobbers-frontend-heykaranaroras-projects.vercel.app/',
+    origin:'https://jobbers-frontend-heykaranaroras-projects.vercel.app',
     credentials:true
 }
 
 app.use(cors({
-    origin: 'https://jobbers-frontend-heykaranaroras-projects.vercel.app/', 
+    origin: 'https://jobbers-frontend-heykaranaroras-projects.vercel.app', 
     credentials: true, 
   }));
 
