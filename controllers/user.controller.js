@@ -197,7 +197,7 @@ export const updateProfile = async (req, res) => {
         // resume comes later here...
         if (cloudResponse) {
             user.profile.resume = cloudResponse.secure_url // save the cloudinary url
-            // console.log(file.profile.resume);
+            //console.log(file.profile.resume);
             user.profile.resumeOriginalName = file.originalname // Save the original file name
         }
 

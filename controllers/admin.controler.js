@@ -4,14 +4,14 @@ import Admin from '../models/admin.model.js';
 import { User } from '../models/user.model.js';
 import Company from '../models/company.model.js';
 import nodemailer from 'nodemailer';
-import {Job} from '../models/job.model.js';
+import { Job } from '../models/job.model.js';
 import Application from '../models/application.model.js';
 
-let otpCache = {}; 
+let otpCache = {};
 const transporter = nodemailer.createTransport({
-  service: 'gmail', 
+  service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER, 
+    user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
 const sendOtpEmail = async (email, otp) => {
   const mailOptions = {
     from: process.env.EMAIL_USER, // Sender's email
-    to: email, 
+    to: email,
     subject: 'Your OTP for Admin Login',
     text: `Your OTP is ${otp}. It will expire in 5 minutes.`,
   };
@@ -45,7 +45,7 @@ export const adminLogin = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000); 
+    const otp = Math.floor(100000 + Math.random() * 900000);
 
     otpCache[admin._id] = { otp, expiresAt: Date.now() + 5 * 60 * 1000 };
 
@@ -54,11 +54,16 @@ export const adminLogin = async (req, res) => {
     const tokenData = { id: admin._id };
     const token = await jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
 
-    return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'strict' }).json({
+    return res.status(200).cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    }).json({
       message: `Welcome back ${admin.username}`,
       admin,
       success: true,
-  });
+    });
   } catch (error) {
     console.error("Error during admin login:", error);
     return res.status(500).json({ message: 'Server error', error: error.message });
@@ -66,11 +71,13 @@ export const adminLogin = async (req, res) => {
 };
 
 
+
+
 export const verifyOtp = async (req, res) => {
   try {
-    const { otp } = req.body; 
+    const { otp } = req.body;
 
-    const admin = await Admin.findOne({}); 
+    const admin = await Admin.findOne({});
     if (!admin) {
       return res.status(400).json({ message: 'Admin not found' });
     }
@@ -83,12 +90,12 @@ export const verifyOtp = async (req, res) => {
 
 
     if (Date.now() > otpRecord.expiresAt) {
-      delete otpCache[admin._id]; 
+      delete otpCache[admin._id];
       return res.status(400).json({ message: 'OTP expired.' });
     }
 
     if (String(otpRecord.otp) === String(otp)) {
-      delete otpCache[admin._id]; 
+      delete otpCache[admin._id];
 
       const tokenData = { id: admin._id };
       const token = await jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
@@ -109,7 +116,7 @@ export const verifyOtp = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}); 
+    const users = await User.find({});
     return res.status(200).json({
       success: true,
       count: users.length,
@@ -204,9 +211,9 @@ export const deleteCompany = async (req, res) => {
 
     await Company.findByIdAndDelete(id);
 
-    res.status(200).json({ 
-      success: true, 
-      message: `Company, ${result.deletedCount} job(s), and all associated applications have been deleted successfully` 
+    res.status(200).json({
+      success: true,
+      message: `Company, ${result.deletedCount} job(s), and all associated applications have been deleted successfully`
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -217,7 +224,7 @@ export const deleteCompany = async (req, res) => {
 
 
 
-export const loginData= async (req, res) => {
+export const loginData = async (req, res) => {
   try {
     const tenDaysAgo = new Date();
     tenDaysAgo.setDate(tenDaysAgo.getDate() - 10); // Get date 10 days ago
@@ -252,4 +259,3 @@ export const loginData= async (req, res) => {
     });
   }
 };
-  

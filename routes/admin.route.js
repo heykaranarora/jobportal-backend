@@ -1,6 +1,6 @@
 import express from "express"
 import { adminLogin, getAllUsers,logout,deleteUser, blockUser, unblockUser,getAllCompanies,verifyOtp,deleteCompany,loginData 
-    
+   ,adminSignUp 
  } from "../controllers/admin.controler.js";
 import isAthenticated from "../middlewares/isAuthenticated.js";
 
