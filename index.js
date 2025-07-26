@@ -3,68 +3,59 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./utils/db.js";
+
 import userRoute from "./routes/user.route.js";
 import companyRoute from "./routes/company.route.js";
 import jobRoute from "./routes/job.route.js";
 import applicationRoute from "./routes/application.route.js";
 import adminRoute from "./routes/admin.route.js";
 
-dotenv.config({});
+// Load environment variables
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 8000;
 
-// middleware
-app.use(express.json());
-app.use(express.urlencoded({extended:true}));
-app.use(cookieParser());
-
-// const corsOptions = {
-//     origin:'https://jobbers-frontend-heykaranaroras-projects.vercel.app',
-//     credentials:true
-// }
-
-// app.use(cors({
-//     origin: 'https://jobbers-frontend-heykaranaroras-projects.vercel.app', 
-//     credentials: true, 
-//   }));
-
+// ✅ Allowed origins for CORS
 const allowedOrigins = [
+  "http://localhost:5173",
   "https://jobbers-frontend-heykaranaroras-projects.vercel.app",
-    "http://localhost:5173",
-    "http://192.168.1.6:5173"
+  "http://192.168.1.6:5173"
 ];
 
-
+// ✅ CORS options
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true, 
+  credentials: true, // Allow cookies to be sent
 };
 
+// ✅ Apply middleware
+app.use(cors(corsOptions));                 // Enable CORS
+app.options("*", cors(corsOptions));        // Handle preflight OPTIONS requests
+app.use(express.json());                    // Parse JSON bodies
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use(cookieParser());                    // Parse cookies
 
-const PORT = process.env.PORT;
+// ✅ Routes
+app.get("/", (req, res) => {
+  res.send("Welcome to Job Portal API");
+});
 
-app.get("/",(req,res)=>{
-    res.send("Welcome to Job Portal API");
-})
-
-// api's
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/company", companyRoute);
 app.use("/api/v1/job", jobRoute);
 app.use("/api/v1/application", applicationRoute);
 app.use("/api/v1/admin", adminRoute);
 
-
-
-app.listen(PORT,()=>{
-    connectDB();
-    console.log(`Server running at port ${PORT}`);
-})
+// ✅ Start server after DB connection
+app.listen(PORT, async () => {
+  await connectDB(); // Ensure DB is connected before listening
+  console.log(`✅ Server running at port ${PORT}`);
+});
